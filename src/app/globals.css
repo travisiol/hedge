@@ -1,0 +1,387 @@
+@import "tailwindcss";
+
+/*
+ * HEDGE — "storm chamber" art direction.
+ *
+ * The whole product is an inversion, so the colour system is inverted too.
+ * Everywhere else red means you lost money. Here red is the day you get
+ * paid, so red is the only saturated colour on the page and it is used for
+ * every good, live, confirmed state:
+ *
+ *   red     down / triggered / paid / live from the chain
+ *   ice     up / quiet / nothing happens today. Deliberately cold and dull:
+ *           on this site a green market day is the boring one, and the page
+ *           should look bored on it.
+ *   bone    everything else. No colour means no state.
+ *
+ * Ground is obsidian rather than pure black so the chrome in the hero has
+ * something to sit on and the hairlines have somewhere to go.
+ */
+:root {
+  --ink: #05060a;
+  --ink-2: #0a0c12;
+  --ink-3: #0f1219;
+
+  --bone: #e9e6e0;
+  /* Set by eye, then measured against --ink: dim lands at 8.6:1 and faint
+     just over 5:1, which is the floor for the 10px uppercase labels this
+     file hands it to. Do not lower either without re-measuring. */
+  --bone-dim: rgba(233, 230, 224, 0.72);
+  --bone-faint: rgba(233, 230, 224, 0.55);
+
+  --rule: rgba(233, 230, 224, 0.09);
+  --rule-2: rgba(233, 230, 224, 0.19);
+
+  --red: #ff2e1f;
+  --red-hot: #ff6455;
+  --red-deep: #7d1109;
+  --red-soft: rgba(255, 46, 31, 0.1);
+  --red-glow: rgba(255, 46, 31, 0.22);
+
+  --ice: #7f8ea8;
+  --ice-soft: rgba(127, 142, 168, 0.09);
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+
+  --color-bone: var(--bone);
+  --color-bone-dim: var(--bone-dim);
+  --color-bone-faint: var(--bone-faint);
+
+  --color-rule: var(--rule);
+  --color-rule-2: var(--rule-2);
+
+  --color-red: var(--red);
+  --color-red-hot: var(--red-hot);
+  --color-red-deep: var(--red-deep);
+  --color-red-soft: var(--red-soft);
+
+  --color-ice: var(--ice);
+  --color-ice-soft: var(--ice-soft);
+
+  --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system,
+    "Helvetica Neue", sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", "JetBrains Mono",
+    monospace;
+}
+
+* {
+  border-color: var(--rule);
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--ink);
+}
+
+body {
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(255, 46, 31, 0.28);
+  color: var(--bone);
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ---------------------------------------------------------------- type -- */
+
+/*
+ * These live in `@layer components` on purpose. Unlayered rules beat every
+ * layered one at equal specificity, so an unlayered `.label` silently won
+ * against `text-red` and `text-ice` — which meant the one accent colour on
+ * the site never fired on a single label. Inside `components`, Tailwind's
+ * `utilities` layer comes after and wins, which is the whole point of
+ * pairing a component class with a colour utility.
+ */
+@layer components {
+  /*
+   * Display is Archivo on its width axis, pushed wide. A wide grotesque set
+   * in caps at 5rem+ is the one typographic move this page makes; everything
+   * else is set small and quiet so the headlines have room to be loud.
+   */
+  .display {
+    font-family: var(--font-display), sans-serif;
+    font-variation-settings: "wdth" 118;
+    font-weight: 700;
+    letter-spacing: -0.022em;
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+
+  .display-tight {
+    font-variation-settings: "wdth" 104;
+    letter-spacing: -0.03em;
+  }
+
+  /* Tabular numbers everywhere a figure could change under the reader. */
+  .num {
+    font-family: var(--font-mono), monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .label {
+    font-family: var(--font-mono), monospace;
+    font-size: 10px;
+    line-height: 1.1;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--bone-faint);
+  }
+}
+
+/* -------------------------------------------------------------- chrome -- */
+
+/*
+ * Grain + vignette, both fixed to the viewport so they read as the room the
+ * page is lit in rather than as a texture on the page. The grain is an
+ * inline feTurbulence — no raster asset ships with this site.
+ */
+.chamber::before,
+.chamber::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.chamber::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: screen;
+}
+
+/*
+ * Corners only. An earlier version reached 55% black over the whole lower
+ * half and, sitting above the content at z-60, quietly turned #e9e6e0
+ * headlines into grey — measured, not guessed. The heavy falloff the 3D
+ * object needs is a hero-local layer under the text instead (`.hero-veil`).
+ */
+.chamber::after {
+  background: radial-gradient(
+    118% 104% at 50% 42%,
+    transparent 64%,
+    rgba(5, 6, 10, 0.5) 100%
+  );
+}
+
+/* Sits over the canvas and under the copy, so it darkens the room without
+   ever touching a glyph. */
+.hero-veil {
+  background:
+    radial-gradient(74% 58% at 50% 46%, transparent 42%, rgba(5, 6, 10, 0.62)),
+    linear-gradient(
+      100deg,
+      rgba(5, 6, 10, 0.86) 0%,
+      rgba(5, 6, 10, 0.42) 42%,
+      transparent 66%
+    );
+}
+
+/* A hairline grid, very faint, that gives the black ground a floor. */
+.grid-floor {
+  background-image:
+    linear-gradient(to right, var(--rule) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rule) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(120% 90% at 50% 40%, #000 20%, transparent 78%);
+}
+
+/* ------------------------------------------------------------ controls -- */
+
+@layer components {
+  .pill {
+    border-radius: 999px;
+  }
+
+  .btn-red {
+    background: var(--red);
+    color: #0b0300;
+    box-shadow:
+      0 0 0 1px rgba(255, 46, 31, 0.5),
+      0 10px 40px -12px var(--red-glow);
+    transition:
+      box-shadow 180ms ease,
+      background 180ms ease,
+      transform 180ms ease;
+  }
+
+  .btn-red:hover:not(:disabled) {
+    background: var(--red-hot);
+    box-shadow:
+      0 0 0 1px rgba(255, 100, 85, 0.6),
+      0 16px 60px -12px rgba(255, 46, 31, 0.45);
+  }
+
+  .btn-red:disabled {
+    background: transparent;
+    color: var(--bone-faint);
+    box-shadow: inset 0 0 0 1px var(--rule-2);
+    cursor: not-allowed;
+  }
+
+  .btn-ghost {
+    box-shadow: inset 0 0 0 1px var(--rule-2);
+    transition:
+      box-shadow 180ms ease,
+      color 180ms ease;
+  }
+
+  .btn-ghost:hover {
+    box-shadow: inset 0 0 0 1px rgba(255, 46, 31, 0.55);
+    color: var(--red);
+  }
+
+  /* Panels read as milled plates: one hairline, one highlight along the top. */
+  .plate {
+    background: linear-gradient(180deg, var(--ink-3) 0%, var(--ink-2) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(233, 230, 224, 0.06),
+      inset 0 0 0 1px var(--rule);
+    border-radius: 3px;
+  }
+
+  .plate-red {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 100, 85, 0.16),
+      inset 0 0 0 1px rgba(255, 46, 31, 0.28),
+      0 24px 70px -40px var(--red-glow);
+  }
+}
+
+/* A dark scrollbar for the panels that scroll sideways on narrow screens.
+   The default light one lands as a bright bar across a black plate. */
+.scroll-x {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-2) transparent;
+}
+
+.scroll-x::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-x::-webkit-scrollbar-thumb {
+  background: var(--rule-2);
+  border-radius: 999px;
+}
+
+/* ------------------------------------------------------------- motion -- */
+
+/*
+ * Scroll reveal is 100% CSS (`animation-timeline: view()`), never JS: a
+ * script rendered by React 19 does not execute, and an IntersectionObserver
+ * does not deliver in a page that is not being rendered. The @media print
+ * guard exists because the capture path evaluates view() timelines at
+ * progress 0 and would otherwise print every section at opacity 0.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 8% cover 26%;
+    }
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* The hero tape. Three identical copies sit side by side, so shifting by a
+   third of the track puts copy two exactly where copy one was. */
+@keyframes tape-run {
+  to {
+    transform: translateX(-33.3333%);
+  }
+}
+
+.tape {
+  animation: tape-run 36s linear infinite;
+}
+
+/* The one thing on the page that is allowed to breathe. */
+@keyframes pulse-red {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.live-dot {
+  animation: pulse-red 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .live-dot,
+  .tape {
+    animation: none;
+  }
+}
+
+/* Awaiting-launch shimmer: a value that is zero because nothing has
+   happened yet, not zero because it was measured. */
+.awaiting {
+  color: var(--bone-faint);
+  position: relative;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+
+.skip-link:focus {
+  position: fixed;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  background: var(--red);
+  color: #0b0300;
+  padding: 0.5rem 0.875rem;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
