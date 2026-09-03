@@ -39,13 +39,25 @@ function buildEnvironment(): THREE.Texture {
   const ctx = canvas.getContext("2d")!;
 
   const sky = ctx.createLinearGradient(0, 0, 0, 512);
-  sky.addColorStop(0, "#2b3242");
-  sky.addColorStop(0.3, "#141922");
-  sky.addColorStop(0.5, "#0a0d13");
-  sky.addColorStop(0.62, "#12070a");
-  sky.addColorStop(1, "#020204");
+  sky.addColorStop(0, "#39415466");
+  sky.addColorStop(0.3, "#232a37");
+  sky.addColorStop(0.5, "#171c26");
+  sky.addColorStop(0.62, "#1a0c10");
+  sky.addColorStop(1, "#050508");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, 1024, 512);
+
+  // Two broad fills 180 degrees apart. A face pointing straight at the
+  // camera reflects whatever sits behind the camera, so without these the
+  // object goes dark every time it swings front-on — which is exactly the
+  // angle the arrow is most readable at.
+  for (const cx of [180, 692]) {
+    const fill = ctx.createRadialGradient(cx, 170, 10, cx, 170, 330);
+    fill.addColorStop(0, "rgba(206,220,246,0.5)");
+    fill.addColorStop(1, "rgba(206,220,246,0)");
+    ctx.fillStyle = fill;
+    ctx.fillRect(cx - 330, 0, 660, 400);
+  }
 
   // A ceiling softbox. Without it the top faces reflect near-black and the
   // whole object reads as a silhouette with a hot rim — which is exactly
@@ -392,7 +404,10 @@ export function Storm({ className }: { className?: string }) {
       eased.x += (pointer.x - eased.x) * 0.045;
       eased.y += (pointer.y - eased.y) * 0.045;
 
-      arrow.rotation.y = elapsed * 0.28 + eased.x * 0.32;
+      // Swings rather than spins. A full rotation puts the arrow edge-on
+      // twice a turn, and edge-on it is a chrome bar — the silhouette is the
+      // mark, so it never gets to stop being an arrow.
+      arrow.rotation.y = Math.sin(elapsed * 0.24) * 0.62 + eased.x * 0.3;
       arrow.rotation.x = -0.1 + Math.sin(elapsed * 0.42) * 0.055 + eased.y * 0.1;
       arrow.position.set(
         layout.offsetX,
